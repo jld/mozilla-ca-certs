@@ -9,5 +9,4 @@ build = "build.rs"
 [dependencies]
 
 [build-dependencies]
-nss-certdata-parser = { version = "0.6.1", path = "../nss-certdata-parser" }
-
+nss-certdata-parser = { version = "0.6.2", path = "../nss-certdata-parser" }
