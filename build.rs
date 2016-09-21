@@ -1,4 +1,8 @@
 extern crate nss_certdata_parser;
+#[cfg(feature = "use_webpki")]
+extern crate webpki;
+#[cfg(feature = "use_webpki")]
+extern crate untrusted;
 
 use std::fs::File;
 use std::env;
@@ -17,6 +21,45 @@ macro_rules! gen {
     }
 }
 
+#[cfg(feature = "use_webpki")]
+fn do_webpki<W: Write>(mut out: W, data: &CertData) {
+    use std::fmt;
+    use untrusted::Input;
+    use webpki;
+    use webpki::trust_anchor_util;
+
+    const ANCHORS_TY: &'static str = "&'static [TrustAnchor<'static>]";
+
+    // FIXME: fix this upstream.
+    #[derive(Debug)]
+    struct TrustAnchor<'a> {
+        subject: Blob<'a>,
+        spki: Blob<'a>,
+        name_constraints: Option<Blob<'a>>,
+    }
+    struct Blob<'a>(&'a [u8]);
+    impl<'a> fmt::Debug for Blob<'a> {
+        fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+            write!(fmt, "&{:?}", self.0)
+        }
+    }
+
+    let anchors: Vec<_> = data.trusted_certs(Usage::TlsServer).iter().map(|cert| {
+        let webpki::TrustAnchor { subject, spki, name_constraints } =
+            trust_anchor_util::cert_der_as_trust_anchor(Input::from(&cert.cert)).unwrap();
+        TrustAnchor {
+            subject: Blob(subject),
+            spki: Blob(spki),
+            name_constraints: name_constraints.map(Blob),
+        }
+    }).collect();
+
+    gen!(out, WEBPKI_TRUST_ROOTS: ANCHORS_TY = anchors);
+}
+
+#[cfg(not(feature = "use_webpki"))]
+fn do_webpki<W: Write>(_out: W, _data: &CertData) { }
+
 fn main() {
     // FIXME -- does Cargo not like relative paths?
     // println!("cargo:rerun-if-changed:{}", CERTDATA_PATH);
@@ -33,4 +76,5 @@ fn main() {
     gen!(out, EMAIL_DISTRUSTS: TRUSTS_TY = data.distrusts(Usage::Email));
     gen!(out, CODE_SIGNING_TRUST_ROOTS: CERTS_TY = data.trusted_certs(Usage::CodeSigning));
     gen!(out, CODE_SIGNING_DISTRUSTS: TRUSTS_TY = data.distrusts(Usage::CodeSigning));
+    do_webpki(&mut out, &data);
 }

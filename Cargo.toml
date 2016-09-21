@@ -1,12 +1,25 @@
 [package]
 name = "mozilla-ca-certs"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Jed Davis <jld@mozilla.com>"]
 description = "The Mozilla CA Certificate Store, pre-parsed for embedding into Rust programs"
 license = "MPL-2.0"
 build = "build.rs"
 
 [dependencies]
+webpki = { version = "0.3.0", optional = true }
 
 [build-dependencies]
 nss-certdata-parser = { version = "0.6.2", path = "../nss-certdata-parser" }
+webpki = { version = "0.3.0", optional = true }
+untrusted = { version = "0.3.1", optional = true }
+
+[features]
+# I can have a feature named "webpki" that depends on the crate
+# "webpki" only, or on any number of crates *not* named "webpki", but
+# not on both the crate "webpki" and one or more other crates.
+# Therefore, the feature for making use of the crate "webpki" is not
+# named "webpki". (I need to depend directly on `untrusted` because I
+# need `untrusted::Input` to use webpki, but it doesn't re-export it.)
+default = ["use_webpki"]
+use_webpki = ["webpki", "untrusted"]
