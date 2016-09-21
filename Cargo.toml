@@ -4,9 +4,10 @@ version = "0.1.0"
 authors = ["Jed Davis <jld@mozilla.com>"]
 description = "The Mozilla CA Certificate Store, pre-parsed for embedding into Rust programs"
 license = "MPL-2.0"
+build = "build.rs"
 
 [dependencies]
 
 [build-dependencies]
-nss-certdata-parser = { version = "0.6.0", path = "../nss-certdata-parser" }
+nss-certdata-parser = { version = "0.6.1", path = "../nss-certdata-parser" }
 
