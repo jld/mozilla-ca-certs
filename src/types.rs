@@ -14,7 +14,6 @@ pub struct Certificate<'a> {
     pub subject: &'a Asn1,
 }
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum TrustLevel {
     Distrust,
