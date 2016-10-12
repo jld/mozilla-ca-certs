@@ -3,6 +3,7 @@ name = "mozilla-ca-certs"
 version = "0.1.3"
 authors = ["Jed Davis <jld@mozilla.com>"]
 description = "The Mozilla CA Certificate Store, pre-parsed for embedding into Rust programs"
+repository = "https://github.com/jld/mozilla-ca-certs"
 license = "MPL-2.0"
 build = "build.rs"
 
